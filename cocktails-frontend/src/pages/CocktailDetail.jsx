@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getCocktailById, deleteCocktail } from '../services/cocktailService';
-import { toggleFavorite, isFavorite } from '../utils/favorites';
+import { toggleFavorite, isFavorite, removeFromFavorites } from '../utils/favorites';
 import CocktailModal from '../components/CocktailModal';
 import './CocktailDetail.css';
 
@@ -22,14 +22,11 @@ const CocktailDetail = () => {
     try {
         setLoading(true);
         const data = await getCocktailById(id);
-        console.log('Datos del cóctel recibidos:', data);
-        console.log('Ingredientes:', data.cocktailIngredients);
         setCocktail(data);
         setFavorite(isFavorite(data.id));
         setError(null);
     } catch (err) {
         setError('Error al cargar el cóctel');
-        console.error(err);
     } finally {
         setLoading(false);
     }
@@ -45,10 +42,11 @@ const CocktailDetail = () => {
         if (window.confirm('¿Estás seguro de eliminar este cóctel?')) {
             try {
                 await deleteCocktail(id);
+                removeFromFavorites(id); // Elimina el cóctel de favoritos
+                window.dispatchEvent(new Event('favoritesChanged'));
                 navigate('/');
             } catch (err) {
                 alert('Error al eliminar el cóctel');
-                console.error(err);
             }
         }
     };

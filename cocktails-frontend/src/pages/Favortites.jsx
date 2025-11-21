@@ -41,6 +41,19 @@ const Favorites = () => {
                 favoriteIds.includes(cocktail.id)
             );
 
+            // Limpiar favoritos que ya no existen (IDs huérfanos)
+            const validFavoriteIds = favorites.map(cocktail => cocktail.id);
+            const invalidIds = favoriteIds.filter(id => !validFavoriteIds.includes(id));
+            
+            if (invalidIds.length > 0) {
+                // Actualizar localStorage solo con IDs válidos
+                const validFavorites = favoriteIds.filter(id => validFavoriteIds.includes(id));
+                localStorage.setItem('cocktail_favorites', JSON.stringify(validFavorites));
+                
+                // Disparar evento para actualizar el contador en el header
+                window.dispatchEvent(new Event('favoritesChanged'));
+            }
+
             setFavoriteCocktails(favorites);
             setError(null);
         } catch (err) {

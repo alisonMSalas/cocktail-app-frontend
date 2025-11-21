@@ -54,3 +54,25 @@ export const getFavoritesCount = () => {
 export const clearFavorites = () => {
     localStorage.removeItem(FAVORITES_KEY);
 };
+
+// Limpiar favoritos inválidos (IDs que no existen en la lista de cócteles)
+export const cleanInvalidFavorites = async (getAllCocktailsFn) => {
+    try {
+        const favoriteIds = getFavorites();
+        if (favoriteIds.length === 0) return;
+
+        const allCocktails = await getAllCocktailsFn();
+        const validIds = allCocktails.map(cocktail => cocktail.id);
+        const validFavorites = favoriteIds.filter(id => validIds.includes(id));
+
+        if (validFavorites.length !== favoriteIds.length) {
+            localStorage.setItem(FAVORITES_KEY, JSON.stringify(validFavorites));
+            window.dispatchEvent(new Event('favoritesChanged'));
+            return true; // Se limpiaron favoritos
+        }
+        return false; // No había favoritos inválidos
+    } catch (err) {
+        console.error('Error limpiando favoritos inválidos:', err);
+        return false;
+    }
+};
